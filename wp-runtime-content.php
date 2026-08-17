@@ -76,7 +76,7 @@ function wprc_default_content() {
 				'residency' => 'You live in one of the areas we serve.',
 				'authority' => 'You are authorised to apply on behalf of the organisation named below.',
 			),
-			'certifyLabel'  => 'I confirm that the statements above are true and accurate to the best of my knowledge.',
+			'certifyLabel'  => 'I confirm the information above is correct as far as I know.',
 			'failHeading'   => 'We are not able to continue with this application',
 			'failBody'      => 'Based on your answers we cannot proceed at this time. This is not a decision about you personally, and you are welcome to apply again if your circumstances change.',
 		),
