@@ -47,7 +47,11 @@ Edit something, press Publish, watch it appear on UAT about a minute later. Only
 
 **Saving iterates the defaults, not the submission.** The save loop walks the known content paths and pulls each value from the POST. An unexpected field in the request can't introduce a key, and a missing one falls back to its default rather than blanking. Trusting the shape of your own form is how you end up with surprises in an option row.
 
-**Colours are validated, not just escaped.** The editor renders a swatch by putting the stored value into a `style` attribute. `esc_attr` prevents the attribute being escaped but does nothing about CSS being injected into it, so the value has to match a literal hex colour or it reverts to the default. This is the one thing I changed from the version I originally shipped.
+**Colours are validated, not just escaped.** The editor renders a swatch by putting the stored value into a `style` attribute. `esc_attr` prevents the attribute being escaped but does nothing about CSS being injected into it, so the value has to match a literal hex colour or it reverts to the default.
+
+**Submitted values have to be scalars.** This one I got wrong first time. A request doesn't have to look like the form that generated it, and `wprc[welcome__heading][]=x` sends an array where a string belongs. That reached `wp_kses_post`, which is a `TypeError` on PHP 8 and produces the literal string `"Array"` on PHP 7 — so depending on the version you either lose the admin page or quietly corrupt the content pack. Anything non-scalar now falls back to its default.
+
+I found it by writing the attack rather than re-reading the code, which is also why the save logic now lives in its own function instead of buried in the page render: it wasn't testable where it was.
 
 ## Security
 
@@ -68,7 +72,19 @@ The REST endpoint is deliberately public and unauthenticated. It serves display 
 
 **Plugins → Add New → Upload Plugin**, then activate. The option is seeded on activation so the endpoint is valid straight away. Or drop the folder in `wp-content/plugins/`.
 
-No ACF, no page builder, no paid dependency. One file.
+No ACF, no page builder, no paid dependency. The plugin itself is a single file.
+
+## Tests
+
+```bash
+php tests/test-content-pack.php
+```
+
+No WordPress needed. The few functions the plugin calls at load time are stubbed, which is enough to exercise merging, flattening, path writing, colour validation, and what the save path does with input that isn't shaped like the form.
+
+CI runs them on PHP 7.4 and 8.2. Both versions matter here, because the array-injection bug behaved differently on each.
+
+There's also a grep step asserting the nonce check, capability check, escaping helpers and type guards are still in the file. Behavioural tests catch behaviour changing; they don't catch somebody deleting a `wp_verify_nonce`.
 
 ## Deploying it
 
