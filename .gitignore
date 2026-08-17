@@ -1,0 +1,14 @@
+﻿# Never commit a built artefact; CI or the deploy step produces it.
+*.zip
+
+# Local WordPress noise
+wp-config.php
+.htaccess
+
+# OS / editor / tooling
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+.claude/

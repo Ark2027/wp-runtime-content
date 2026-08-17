@@ -1,0 +1,38 @@
+name: Deploy to staging
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: SFTP deploy
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pinned to a commit SHA rather than a tag. A tag is a moving pointer, and
+      # this action gets handed credentials, so it is one of the few places where
+      # pinning genuinely matters.
+      - name: Deploy over SFTP
+        uses: milanmk/actions-file-deployer@b204fec5b826c391b116c40b789df470a4fb6870
+        with:
+          remote-protocol: sftp
+          remote-host: ${{ secrets.SFTP_HOST }}
+          remote-port: ${{ secrets.SFTP_PORT }}
+          remote-user: ${{ secrets.SFTP_USER }}
+          remote-password: ${{ secrets.SFTP_PASSWORD }}
+          local-path: .
+          # The SFTP account is chrooted to this plugin's own directory, so the
+          # remote root "/" is that folder and nothing above it. A full sync can
+          # only ever touch this plugin, never the wider WordPress install.
+          # Worth setting up that way: it makes an over-broad sync harmless
+          # instead of catastrophic.
+          remote-path: /
+          sync: full
