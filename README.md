@@ -49,7 +49,7 @@ Edit something, press Publish, watch it appear on UAT about a minute later. Only
 
 **Colours are validated, not just escaped.** The editor renders a swatch by putting the stored value into a `style` attribute. `esc_attr` prevents the attribute being escaped but does nothing about CSS being injected into it, so the value has to match a literal hex colour or it reverts to the default.
 
-**Submitted values have to be scalars.** This one I got wrong first time. A request doesn't have to look like the form that generated it, and `wprc[welcome__heading][]=x` sends an array where a string belongs. That reached `wp_kses_post`, which is a `TypeError` on PHP 8 and produces the literal string `"Array"` on PHP 7 — so depending on the version you either lose the admin page or quietly corrupt the content pack. Anything non-scalar now falls back to its default.
+**Submitted values have to be scalars.** This one I got wrong first time. A request doesn't have to look like the form that generated it, and `wprc[welcome__heading][]=x` sends an array where a string belongs. That reached `wp_kses_post`, which is a `TypeError` on PHP 8 and produces the literal string `"Array"` on PHP 7. Depending on the version you either lose the admin page or quietly corrupt the content pack. Anything non-scalar now falls back to its default.
 
 I found it by writing the attack rather than re-reading the code, which is also why the save logic now lives in its own function instead of buried in the page render: it wasn't testable where it was.
 
