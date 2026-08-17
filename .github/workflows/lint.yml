@@ -1,4 +1,4 @@
-name: lint
+name: tests
 
 on:
   push:
@@ -10,12 +10,14 @@ permissions:
   contents: read
 
 jobs:
-  lint:
+  test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         # 7.4 is the floor the plugin header declares, so it gets checked too.
+        # The array-injection bug behaved differently on each, which is exactly
+        # why both are here.
         php-version: ["7.4", "8.2"]
 
     steps:
@@ -29,29 +31,35 @@ jobs:
       - name: Syntax check
         run: php -l wp-runtime-content.php
 
-      # Catching these in review is unreliable; catching them here is not.
-      - name: Output escaping and capability checks are present
+      - name: Unit tests
+        run: php tests/test-content-pack.php
+
+      # The tests cover behaviour. This covers deletion: someone removing a
+      # nonce check will not fail a behavioural test, but it should still fail
+      # the build.
+      - name: Safeguards are still present
         run: |
           set -e
           require() {
             if ! grep -q "$1" wp-runtime-content.php; then
-              echo "::error::missing expected safeguard: $2"
+              echo "::error::missing safeguard: $2"
               exit 1
             fi
             echo "  ok: $2"
           }
-          require "wp_verify_nonce"                "nonce verification on save"
-          require "current_user_can"               "capability check"
-          require "wp_kses_post"                   "body copy sanitisation"
-          require "esc_textarea"                   "textarea escaping"
-          require "esc_url"                        "url escaping"
-          require "wprc_is_hex_color"              "colour validation before it reaches a style attribute"
-          require "defined( 'ABSPATH' )"           "direct access guard"
+          require "wp_verify_nonce"      "nonce verification on save"
+          require "current_user_can"     "capability check"
+          require "wp_kses_post"         "body copy sanitisation"
+          require "esc_textarea"         "textarea escaping"
+          require "esc_url"              "url escaping"
+          require "wprc_is_hex_color"    "colour validated before it reaches a style attribute"
+          require "is_scalar"            "type guard on submitted values"
+          require "defined( 'ABSPATH' )" "direct access guard"
 
-      - name: No raw echo of request data
+      - name: No unescaped request data reaches output
         run: |
           if grep -nE 'echo\s+\$_(POST|GET|REQUEST|SERVER)' wp-runtime-content.php; then
             echo "::error::request data echoed without escaping"
             exit 1
           fi
-          echo "  ok: no unescaped request data reaches output"
+          echo "  ok: none found"

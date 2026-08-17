@@ -246,6 +246,55 @@ function wprc_is_hex_color( $value ) {
 	return (bool) preg_match( '/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', (string) $value );
 }
 
+/**
+ * Build a content pack from submitted form data.
+ *
+ * Separate from the page render so it can be tested against hostile input
+ * without standing up WordPress, which is the only way to be sure about any of
+ * the guarantees below.
+ *
+ * The loop walks the *known* content paths and pulls each value out of the
+ * submission, rather than walking the submission. That inversion is what stops
+ * an unexpected field introducing a key, and makes a missing field fall back to
+ * its default instead of blanking.
+ *
+ * @param mixed $submitted Raw, unslashed $_POST['wprc']. Any shape at all.
+ * @return array Complete content pack, safe to store.
+ */
+function wprc_build_content_from_input( $submitted ) {
+	// A request need not resemble the form that generated it. This can arrive
+	// as a string, or absent, or as something stranger.
+	$posted = is_array( $submitted ) ? $submitted : array();
+	$new    = array();
+
+	foreach ( wprc_flatten( wprc_default_content() ) as $path => $default ) {
+		$field = str_replace( '.', '__', $path );
+		$value = isset( $posted[ $field ] ) ? $posted[ $field ] : null;
+
+		// Only a scalar is something a person typed into this form. Sending
+		// wprc[welcome__heading][]=x makes this an array, and handing that to
+		// wp_kses_post is a TypeError on PHP 8 and the literal string "Array"
+		// on PHP 7. One takes the page down, the other quietly corrupts the
+		// content pack, and neither is acceptable.
+		$value = is_scalar( $value ) ? (string) $value : $default;
+
+		if ( false !== strpos( $path, 'Color' ) ) {
+			$value = wprc_is_hex_color( $value ) ? $value : $default;
+		} else {
+			// Inline formatting is genuinely useful in body copy, so allow the
+			// post-safe subset rather than stripping all markup.
+			$value = wp_kses_post( $value );
+		}
+
+		wprc_set_path( $new, $path, $value );
+	}
+
+	// Stamp every publish. When somebody asks which wording was live on a given
+	// day, this is the answer.
+	$new['version'] = gmdate( 'Y-m-d\TH:i:s\Z' );
+	return $new;
+}
+
 /* ---------------------------------------------------------------------------
  * Admin editor
  * ------------------------------------------------------------------------- */
@@ -269,31 +318,8 @@ function wprc_render_admin_page() {
 	}
 
 	if ( isset( $_POST['wprc_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['wprc_nonce'] ) ), 'wprc_save' ) ) {
-		$posted = isset( $_POST['wprc'] ) ? wp_unslash( $_POST['wprc'] ) : array();
-		$new    = array();
-
-		// Iterate the defaults rather than the submitted data, so an unexpected
-		// field in the POST cannot introduce a new key and a missing one falls
-		// back to its default instead of blanking.
-		foreach ( wprc_flatten( wprc_default_content() ) as $path => $default ) {
-			$field = str_replace( '.', '__', $path );
-			$value = isset( $posted[ $field ] ) ? $posted[ $field ] : $default;
-
-			if ( false !== strpos( $path, 'Color' ) ) {
-				$value = wprc_is_hex_color( $value ) ? $value : $default;
-			} else {
-				// Inline formatting is genuinely useful in body copy, so allow
-				// the post-safe subset rather than stripping all markup.
-				$value = wp_kses_post( $value );
-			}
-
-			wprc_set_path( $new, $path, $value );
-		}
-
-		// Stamp every publish. When somebody asks which wording was live on a
-		// given day, this is the answer.
-		$new['version'] = gmdate( 'Y-m-d\TH:i:s\Z' );
-		update_option( WPRC_OPTION, $new );
+		$submitted = isset( $_POST['wprc'] ) ? wp_unslash( $_POST['wprc'] ) : array();
+		update_option( WPRC_OPTION, wprc_build_content_from_input( $submitted ) );
 
 		echo '<div class="notice notice-success is-dismissible"><p>'
 			. esc_html__( 'Content published. It will reach the application within a couple of minutes.', 'wp-runtime-content' )
@@ -327,8 +353,12 @@ function wprc_render_admin_page() {
 				<table class="form-table" role="presentation"><tbody>
 				<?php
 				foreach ( $paths as $path ) :
-					$field    = str_replace( '.', '__', $path );
-					$value    = $flat[ $path ];
+					$field = str_replace( '.', '__', $path );
+					// Cast on the way out too. The option is written by the save
+					// path above, but it is also just a database row, and this
+					// template should not fall over because something else put
+					// an unexpected type in it.
+					$value    = is_scalar( $flat[ $path ] ) ? (string) $flat[ $path ] : '';
 					$is_legal = in_array( $path, $compliance, true );
 					$is_color = ( false !== strpos( $path, 'Color' ) );
 					$label    = wprc_humanize( implode( ' › ', array_slice( explode( '.', $path ), 1 ) ) );
