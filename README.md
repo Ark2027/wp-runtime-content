@@ -1,5 +1,7 @@
 # Runtime Content Pack
 
+[![lint](https://github.com/Ark2027/wp-runtime-content/actions/workflows/lint.yml/badge.svg)](https://github.com/Ark2027/wp-runtime-content/actions/workflows/lint.yml)
+
 A WordPress plugin that lets the people who own the wording change the wording, without involving the people who own the deploy pipeline.
 
 ## The problem
