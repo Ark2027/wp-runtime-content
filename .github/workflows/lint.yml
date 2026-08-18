@@ -34,8 +34,8 @@ jobs:
       - name: Unit tests
         run: php tests/test-content-pack.php
 
-      # The tests cover behaviour. This covers deletion: someone removing a
-      # nonce check will not fail a behavioural test, but it should still fail
+      # The tests cover behavior. This covers deletion: someone removing a
+      # nonce check will not fail a behavioral test, but it should still fail
       # the build.
       - name: Safeguards are still present
         run: |
@@ -49,10 +49,10 @@ jobs:
           }
           require "wp_verify_nonce"      "nonce verification on save"
           require "current_user_can"     "capability check"
-          require "wp_kses_post"         "body copy sanitisation"
+          require "wp_kses_post"         "body copy sanitization"
           require "esc_textarea"         "textarea escaping"
           require "esc_url"              "url escaping"
-          require "wprc_is_hex_color"    "colour validated before it reaches a style attribute"
+          require "wprc_is_hex_color"    "color validated before it reaches a style attribute"
           require "is_scalar"            "type guard on submitted values"
           require "defined( 'ABSPATH' )" "direct access guard"
 

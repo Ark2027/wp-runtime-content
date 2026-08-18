@@ -5,7 +5,7 @@
  * WordPress is not loaded. The handful of functions the plugin calls at load
  * time are stubbed below, which is enough to exercise everything that does not
  * touch the database or render a page. That covers the parts worth testing:
- * merging, flattening, path writing, colour validation, and what happens when
+ * merging, flattening, path writing, color validation, and what happens when
  * the submitted form data is not shaped like the form.
  *
  * Run:  php tests/test-content-pack.php
@@ -157,7 +157,7 @@ check( 'a known field is accepted', 'Hello' === $result['welcome']['heading'] );
 
 $result = wprc_build_content_from_input( array( 'theme__primaryColor' => 'red; background-image:url(javascript:alert(1))' ) );
 check(
-	'a colour that is not hex reverts to the default',
+	'a color that is not hex reverts to the default',
 	'#1f3a5f' === $result['theme']['primaryColor'],
 	var_export( $result['theme']['primaryColor'], true )
 );

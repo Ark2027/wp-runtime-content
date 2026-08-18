@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:       Runtime Content Pack
- * Description:       Lets non-technical staff edit a single-page app's copy, labels, consent text and brand colours from WordPress. Publishes a JSON content pack the app reads at runtime, so wording changes need no code deploy.
+ * Description:       Lets non-technical staff edit a single-page app's copy, labels, consent text and brand colors from WordPress. Publishes a JSON content pack the app reads at runtime, so wording changes need no code deploy.
  * Version:           1.0.0
  * Author:            Mark Pease
  * Requires at least: 5.6
@@ -65,7 +65,7 @@ function wprc_default_content() {
 		'welcome' => array(
 			'heading'      => 'Welcome',
 			'intro'        => 'This short application takes about ten minutes. You can save your progress and come back to it at any point.',
-			'orgName'      => 'Example Organisation',
+			'orgName'      => 'Example Organization',
 			'startButton'  => 'Start a new application',
 			'resumeButton' => 'Resume an application',
 		),
@@ -74,7 +74,7 @@ function wprc_default_content() {
 			'requirements'  => array(
 				'age'       => 'You are 18 or older.',
 				'residency' => 'You live in one of the areas we serve.',
-				'authority' => 'You are authorised to apply on behalf of the organisation named below.',
+				'authority' => 'You are authorized to apply on behalf of the organization named below.',
 			),
 			'certifyLabel'  => 'I confirm the information above is correct as far as I know.',
 			'failHeading'   => 'We are not able to continue with this application',
@@ -104,7 +104,7 @@ function wprc_default_content() {
 			'referenceLabel'   => 'Your reference number',
 		),
 		'consents' => array(
-			'dataUse'      => 'I agree that the information I provide may be used to assess this application and may be shared with organisations involved in that assessment.',
+			'dataUse'      => 'I agree that the information I provide may be used to assess this application and may be shared with organizations involved in that assessment.',
 			'contactInfo'  => 'I agree to be contacted about this application by email or telephone.',
 			'creditCheck'  => 'I understand that a check may be carried out and that this may be recorded.',
 		),
@@ -232,14 +232,14 @@ function wprc_humanize( $segment ) {
 }
 
 /**
- * Whether a stored value is a colour we are willing to render inline.
+ * Whether a stored value is a color we are willing to render inline.
  *
  * The editor shows a swatch by putting the value into a style attribute, and
  * esc_attr stops the attribute being escaped without stopping CSS being
- * injected into it. Restricting this to a literal hex colour removes the
+ * injected into it. Restricting this to a literal hex color removes the
  * question entirely.
  *
- * @param string $value Candidate colour.
+ * @param string $value Candidate color.
  * @return bool
  */
 function wprc_is_hex_color( $value ) {
@@ -339,7 +339,7 @@ function wprc_render_admin_page() {
 	?>
 	<div class="wrap">
 		<h1><?php esc_html_e( 'Application content', 'wp-runtime-content' ); ?></h1>
-		<p><?php esc_html_e( 'Edit the words, labels and colours applicants see, then press Publish. Changes reach the application within a couple of minutes, with no developer involved.', 'wp-runtime-content' ); ?></p>
+		<p><?php esc_html_e( 'Edit the words, labels and colors applicants see, then press Publish. Changes reach the application within a couple of minutes, with no developer involved.', 'wp-runtime-content' ); ?></p>
 		<p style="color:#666;">
 			<?php esc_html_e( 'Live content feed:', 'wp-runtime-content' ); ?>
 			<code><?php echo esc_url( $endpoint ); ?></code>
