@@ -70,7 +70,13 @@ The REST endpoint is deliberately public and unauthenticated. It serves display 
 
 ## Install
 
-**Plugins → Add New → Upload Plugin**, then activate. The option is seeded on activation so the endpoint is valid straight away. Or drop the folder in `wp-content/plugins/`.
+Needs WordPress 5.8 or newer and PHP 7.4 or newer. Download the repo as a ZIP from the green **Code** button, or clone it:
+
+```bash
+git clone https://github.com/Ark2027/wp-runtime-content
+```
+
+Then **Plugins → Add New → Upload Plugin**, and activate. The option is seeded on activation so the endpoint is valid straight away. Or drop the folder in `wp-content/plugins/`.
 
 No ACF, no page builder, no paid dependency. The plugin itself is a single file.
 
